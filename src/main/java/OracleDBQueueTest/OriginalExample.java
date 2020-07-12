@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.Properties;
 import oracle.jdbc.*;
 import oracle.jdbc.aq.*;
+import oracle.xdb.XMLType;
 
 public class OriginalExample {
 	static final String USERNAME = "SVC_ESB";
@@ -22,8 +23,8 @@ public class OriginalExample {
 	void run() throws SQLException {
 		OracleConnection connection = connect();
 		connection.setAutoCommit(false);
-		cleanup(connection);
-		setup(connection);
+		//cleanup(connection);
+		//setup(connection);
 		// run the demo for single consumer queue:
 		//demoSingleConsumerQueue(connection);
 		// run the demo for multi consumer queue:
@@ -69,10 +70,10 @@ public class OriginalExample {
 	 */
 	void demoMultipleConsumerQueue(OracleConnection connection) throws SQLException {
 		System.out.println("\n ============= Start multi consumer queue demo ============= \n");
-		String queueType = "RAW";
+		String queueType = "XMLTYPE";
 		String queueName = USERNAME + ".RAW_MULTIPLE_QUEUE";
 
-		AQNotificationRegistration reg = registerForAQEvents(connection, queueName + ":BLUE");
+		//AQNotificationRegistration reg = registerForAQEvents(connection, queueName + ":BLUE");
 		//DemoAQRawQueueListener multi_li = new DemoAQRawQueueListener(queueName, queueType);
 		//reg.addListener(multi_li);
 		AQAgent[] recipients = new AQAgent[2];
@@ -94,7 +95,7 @@ public class OriginalExample {
 		dequeue(connection, queueName, queueType, "RED");
 
 		//multi_li.closeConnection();
-		connection.unregisterAQNotification(reg);
+		//connection.unregisterAQNotification(reg);
 	}
 
 	/**
@@ -122,10 +123,39 @@ public class OriginalExample {
 		// Create the actual AQMessage instance:
 		AQMessage mesg = AQFactory.createAQMessage(msgprop);
 		// and add a payload:
+		String xmlPayLoad="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n" + 
+				"<ROWSET>\r\n" + 
+				"  <ROW>\r\n" + 
+				"    <XML_VERSION>0.010</XML_VERSION>\r\n" + 
+				"    <T_SUB_EVN>\r\n" + 
+				"      <EVENT_TYPE>PSWSIM</EVENT_TYPE>\r\n" + 
+				"      <BUS_EVENT_TYPE/>\r\n" + 
+				"      <EVENT_SEQ/>\r\n" + 
+				"      <REQUEST_SEQ/>\r\n" + 
+				"      <EVENT_DATE>20200501 21:59:32</EVENT_DATE>\r\n" + 
+				"      <ICAP_ID/>\r\n" + 
+				"      <CUSTOMER_ID/>\r\n" + 
+				"      <ICAP_EVENT_SEQ/>\r\n" + 
+				"      <REF_NO>CRMSSW_20</REF_NO>\r\n" + 
+				"      <EVN_ATR_LIST>\r\n" + 
+				"        <T_EVN_ATR>\r\n" + 
+				"          <ORIGIN_ID>6D</ORIGIN_ID>\r\n" + 
+				"          <EVENT_MSISDN>255745757351</EVENT_MSISDN>\r\n" + 
+				"          <OLD_ICC_ID>8925504100000024392</OLD_ICC_ID>\r\n" + 
+				"          <NEW_ICC_ID>8925504200401457803</NEW_ICC_ID>\r\n" + 
+				"        </T_EVN_ATR>\r\n" + 
+				"      </EVN_ATR_LIST>\r\n" + 
+				"    </T_SUB_EVN>\r\n" + 
+				"  </ROW>\r\n" + 
+				"</ROWSET>\r\n" + 
+				"";
+		
+		
 		byte[] rawPayload = new byte[500];
 		for (int i = 0; i < rawPayload.length; i++)
 			rawPayload[i] = 'b';
-		mesg.setPayload(new oracle.sql.RAW(rawPayload));
+		//mesg.setPayload(new oracle.sql.RAW(rawPayload));
+		mesg.setPayload(new XMLType(conn, xmlPayLoad));
 
 		// We want to retrieve the message id after enqueue:
 		AQEnqueueOptions opt = new AQEnqueueOptions();
@@ -154,11 +184,12 @@ public class OriginalExample {
 		deqopt.setRetrieveMessageId(true);
 		if (consumerName != null)
 			deqopt.setConsumerName(consumerName);
-
+		queueName="SVC_ESB.SIXDQUEUE";
 		// dequeue operation:
 		AQMessage msg = conn.dequeue(queueName, deqopt, queueType);
 
 		// print out the message that has been dequeued:
+		
 		byte[] payload = msg.getPayload();
 		byte[] msgId = msg.getMessageId();
 		if (msgId != null) {
@@ -167,7 +198,7 @@ public class OriginalExample {
 		}
 		AQMessageProperties msgProp = msg.getMessageProperties();
 		System.out.println(msgProp.toString());
-		String payloadStr = new String(payload, 0, 10);
+		String payloadStr = new String(payload);
 		System.out.println("payload.length=" + payload.length + ", value=" + payloadStr);
 		System.out.println("----------- Dequeue done ------------");
 	}
@@ -201,7 +232,7 @@ public class OriginalExample {
 		// create a multi consumer RAW queue:
 		doUpdateDatabase(conn,
 				"BEGIN " + "DBMS_AQADM.CREATE_QUEUE_TABLE( " + "   QUEUE_TABLE        =>  '" + USERNAME
-						+ ".RAW_MULTIPLE_QUEUE_TABLE',  " + "   QUEUE_PAYLOAD_TYPE =>  'RAW', "
+						+ ".RAW_MULTIPLE_QUEUE_TABLE',  " + "   QUEUE_PAYLOAD_TYPE =>  'SYS.XMLTYPE', "
 						+ "   MULTIPLE_CONSUMERS =>  TRUE, " + "   COMPATIBLE         =>  '10.0'); " + "END; ");
 		doUpdateDatabase(conn,
 				"BEGIN " + "DBMS_AQADM.CREATE_QUEUE( " + "    QUEUE_NAME     =>   '" + USERNAME

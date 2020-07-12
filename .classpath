@@ -41,5 +41,6 @@
 	<classpathentry kind="lib" path="C:/Users/gokul/eclipse-workspace/OJDBC8-Full/simplefan.jar"/>
 	<classpathentry kind="lib" path="C:/Users/gokul/eclipse-workspace/OJDBC8-Full/ucp.jar"/>
 	<classpathentry kind="lib" path="C:/Users/gokul/eclipse-workspace/OJDBC8-Full/xdb6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/gokul/eclipse-workspace/OJDBC8-Full/xmlparserv2-12.2.0.1.jar"/>
 	<classpathentry kind="output" path="bin/default"/>
 </classpath>

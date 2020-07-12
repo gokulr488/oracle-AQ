@@ -8,6 +8,7 @@ import oracle.jdbc.OracleDriver;
 import oracle.jdbc.aq.AQDequeueOptions;
 import oracle.jdbc.aq.AQMessage;
 import oracle.jdbc.aq.AQMessageProperties;
+import oracle.xdb.XMLType;
 
 public class Consumer {
 
@@ -18,7 +19,7 @@ public class Consumer {
 		connection.setAutoCommit(false);
 		String queueName="SVC_ESB.SIXDQUEUE";
 		String queueType="XMLTYPE";
-		String consumerName="Recipient_1";
+		String consumerName="BLUE";
 		consumer.dequeue(connection, queueName, queueType, consumerName);
 
 	}
@@ -28,6 +29,7 @@ public class Consumer {
 		System.out.println("----------- Dequeue start ------------");
 		AQDequeueOptions deqopt = new AQDequeueOptions();
 		deqopt.setRetrieveMessageId(true);
+		
 		if (consumerName != null) {
 			deqopt.setConsumerName(consumerName);
 			
@@ -39,6 +41,7 @@ public class Consumer {
 		System.out.println("dequed and received");
 
 		// print out the message that has been dequeued:
+		XMLType xmlPayload = msg.getXMLTypePayload();
 		byte[] payload = msg.getPayload();
 		byte[] msgId = msg.getMessageId();
 		if (msgId != null) {
@@ -48,7 +51,7 @@ public class Consumer {
 		AQMessageProperties msgProp = msg.getMessageProperties();
 		System.out.println(msgProp.toString());
 		String payloadStr = new String(payload, 0, 10);
-		System.out.println("payload.length=" + payload.length + ", value=" + payloadStr);
+		System.out.println("payload.length=" + payload.length + ", value=" + xmlPayload.getStringVal());
 		System.out.println("----------- Dequeue done ------------");
 	}
 
