@@ -24,7 +24,7 @@ public class OriginalExample {
 		OracleConnection connection = connect();
 		connection.setAutoCommit(false);
 		//cleanup(connection);
-		//setup(connection);
+		setup(connection);
 		// run the demo for single consumer queue:
 		//demoSingleConsumerQueue(connection);
 		// run the demo for multi consumer queue:

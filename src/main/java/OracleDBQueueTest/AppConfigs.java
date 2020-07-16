@@ -12,12 +12,12 @@ public class AppConfigs {
 		getAllValues();
 	}
 
-	static boolean dequeMode;
-	static String username;
-	static String password;
-	static String url;
-	static String runmode;
-	static boolean cleanUp;
+	public static boolean dequeMode;
+	public static String username;
+	public static String password;
+	public static String url;
+	public static String runmode;
+	public static boolean cleanUp;
 
 	static FileInputStream fileInputStream;
 
@@ -39,7 +39,7 @@ public class AppConfigs {
 			String clean = prop.getProperty("cleanup");
 			username = prop.getProperty("username");
 			password = prop.getProperty("password");
-			url = prop.getProperty("URL");
+			url = prop.getProperty("url");
 			runmode = prop.getProperty("runmode");
 
 			if (clean.equals("T") || clean.equals("t")) {
