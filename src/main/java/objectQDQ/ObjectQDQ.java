@@ -17,7 +17,7 @@ public class ObjectQDQ {
 		}
 
 		ObjectEnqueueHandler enquer = new ObjectEnqueueHandler();
-		enquer.initialiseTables();
+		//enquer.initialiseTables();
 		enquer.enqueuData(enquer.populateData());
 		enquer.closeConnection();
 		

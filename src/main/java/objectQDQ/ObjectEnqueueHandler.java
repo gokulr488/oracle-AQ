@@ -86,13 +86,12 @@ public class ObjectEnqueueHandler {
 		Object[] itemAtributes = new Object[] { data.getEventSeq(), data.getEventTimeStamp(), data.getEventType(),
 				data.getIcapId(), data.getEventString() };
 
-		STRUCT itemObject2 = new STRUCT(itemDescriptor,conn,itemAtributes);
-		
-		
-		
-		//Object[] attributes = { data };
+		STRUCT itemObject2 = new STRUCT(itemDescriptor, conn, itemAtributes);
 
-		//Struct struct = conn.createStruct("SVC_ESB.event_obj", attributes);// new STRUCT(structDescriptor, connection,
+		// Object[] attributes = { data };
+
+		// Struct struct = conn.createStruct("SVC_ESB.event_obj", attributes);// new
+		// STRUCT(structDescriptor, connection,
 		// payloadMap);
 		// aqMessage.setPayload(struct);
 
@@ -157,28 +156,30 @@ public class ObjectEnqueueHandler {
 //
 //				EXECUTE DBMS_AQADM.START_QUEUE (
 //				queue_name         => 'event_object_queue');
+		tryUpdateDatabase(conn, "DROP TYPE SVC_ESB.T_ICAP_EVENT;");
+		tryUpdateDatabase(conn, "BEGIN " + "  DBMS_AQADM.STOP_QUEUE('SVC_ESB.SIXDQUEUE'); " + "END; ");
+		tryUpdateDatabase(conn,
+				"BEGIN " + "  DBMS_AQADM.DROP_QUEUE_TABLE( "
+						+ "    QUEUE_TABLE         => 'SVC_ESB.SIXDQUEUETABLE', "
+						+ "    FORCE               => TRUE); " + "END; ");
 
-		doUpdateDatabase(conn, "CREATE type SVC_ESB.T_ICAP_EVENT as object (\r\n" + 
-				"EVENT_SEQ                                          NUMBER(10),\r\n" + 
-				" EVENT_TIMESTAMP                                    DATE,\r\n" + 
-				" EVENT_TYPE                                         VARCHAR2(6),\r\n" + 
-				" ICAP_ID                                            NUMBER(10),\r\n" + 
-				" EVENT_STRING                                       CLOB);  ");
+		doUpdateDatabase(conn,
+				"CREATE type SVC_ESB.T_ICAP_EVENT as object (\r\n"
+						+ "EVENT_SEQ                                          NUMBER(10),\r\n"
+						+ " EVENT_TIMESTAMP                                    DATE,\r\n"
+						+ " EVENT_TYPE                                         VARCHAR2(6),\r\n"
+						+ " ICAP_ID                                            NUMBER(10),\r\n"
+						+ " EVENT_STRING                                       CLOB);  ");
 
-		doUpdateDatabase(conn, "BEGIN\r\n" + 
-				"       DBMS_AQADM.CREATE_QUEUE_TABLE(\r\n" + 
-				"            QUEUE_TABLE         =>  'SVC_ESB.SIXDQUEUETABLE',\r\n" + 
-				"            multiple_consumers  => TRUE,    \r\n" + 
-				"            QUEUE_PAYLOAD_TYPE  =>  'SVC_ESB.T_ICAP_EVENT',\r\n" + 
-				"            COMPATIBLE          =>  '10.0' \r\n" + 
-				"\r\n" + 
-				"            ); \r\n" + 
-				" END;");
 		doUpdateDatabase(conn,
-				" BEGIN DBMS_AQADM.CREATE_QUEUE (\r\n" + "queue_name         => 'SixDQueue',\r\n"
-						+ "queue_table        => 'SVC_ESB.SIXDQUEUETABLE');END;");
-		doUpdateDatabase(conn,
-				"BEGIN DBMS_AQADM.START_QUEUE (\r\n" + "queue_name         => 'SixDQueue');END;");
+				"BEGIN\r\n" + "       DBMS_AQADM.CREATE_QUEUE_TABLE(\r\n"
+						+ "            QUEUE_TABLE         =>  'SVC_ESB.SIXDQUEUETABLE',\r\n"
+						+ "            multiple_consumers  => TRUE,    \r\n"
+						+ "            QUEUE_PAYLOAD_TYPE  =>  'SVC_ESB.T_ICAP_EVENT',\r\n"
+						+ "            COMPATIBLE          =>  '10.0' \r\n" + "\r\n" + "            ); \r\n" + " END;");
+		doUpdateDatabase(conn, " BEGIN DBMS_AQADM.CREATE_QUEUE (\r\n" + "queue_name         => 'SixDQueue',\r\n"
+				+ "queue_table        => 'SVC_ESB.SIXDQUEUETABLE');END;");
+		doUpdateDatabase(conn, "BEGIN DBMS_AQADM.START_QUEUE (\r\n" + "queue_name         => 'SixDQueue');END;");
 
 	}
 
@@ -186,134 +187,84 @@ public class ObjectEnqueueHandler {
 		EventObj data = new EventObj();
 		data.setEventSeq(1);
 
-		String xmlPayLoad = "<?xml version=\"1.0\"?>\r\n" + 
-				"<ROWSET>\r\n" + 
-				"	<ROW>\r\n" + 
-				"		<XML_VERSION>0.010</XML_VERSION>\r\n" + 
-				"		<T_SUB_EVN>\r\n" + 
-				"			<EVENT_TYPE>SIMSWP</EVENT_TYPE>\r\n" + 
-				"			<EVENT_SEQ>1</EVENT_SEQ>\r\n" + 
-				"			<REQUEST_SEQ>2</REQUEST_SEQ>\r\n" + 
-				"			<EVENT_DATE>2020-06-28 12:02:00</EVENT_DATE>\r\n" + 
-				"			<ICAP_ID>50</ICAP_ID>\r\n" + 
-				"			<CUSTOMER_ID></CUSTOMER_ID>\r\n" + 
-				"			<ICAP_EVENT_SEQ></ICAP_EVENT_SEQ>\r\n" + 
-				"			<EVN_ATR_LIST>\r\n" + 
-				"				<T_EVN_ATR>\r\n" + 
-				"					<ORIGIN_ID>6D</ORIGIN_ID>\r\n" + 
-				"					<OFFER_ID></OFFER_ID>\r\n" + 
-				"					<OFFER_GROUP></OFFER_GROUP>\r\n" + 
-				"					<EVENT_MSISDN>255745757350</EVENT_MSISDN>\r\n" + 
-				"                    <OLD_ICC_ID>8925504100000024</OLD_ICC_ID>\r\n" + 
-				"                    <NEW_ICC_ID>8925504200401457806</NEW_ICC_ID>\r\n" + 
-				"				</T_EVN_ATR>\r\n" + 
-				"			</EVN_ATR_LIST>\r\n" + 
-				"			<SUB_ATR_LIST>\r\n" + 
-				"				<T_SUB_ATR>\r\n" + 
-				"					<MSIN></MSIN>\r\n" + 
-				"					<ICC_ID></ICC_ID>\r\n" + 
-				"					<T11_MSISDN></T11_MSISDN>\r\n" + 
-				"					<ACTIVATION_DATE></ACTIVATION_DATE>\r\n" + 
-				"					<CONNECTION_DATE></CONNECTION_DATE>\r\n" + 
-				"					<OFFER_START_DATE></OFFER_START_DATE>\r\n" + 
-				"					<GSM_OFFER_ID_ORG></GSM_OFFER_ID_ORG>\r\n" + 
-				"					<GSM_OFFER_ID></GSM_OFFER_ID>\r\n" + 
-				"					<SP_REF_KEY></SP_REF_KEY>\r\n" + 
-				"					<PAYMENT_METHOD></PAYMENT_METHOD>\r\n" + 
-				"					<CLASS></CLASS>\r\n" + 
-				"					<TWC_STATUS></TWC_STATUS>\r\n" + 
-				"					<HLR_NUMBERING_TYPE>S</HLR_NUMBERING_TYPE>\r\n" + 
-				"					<ADMIN_LOCK></ADMIN_LOCK>\r\n" + 
-				"					<STOLEN_LOCK></STOLEN_LOCK>\r\n" + 
-				"					<CLL_STATUS></CLL_STATUS>\r\n" + 
-				"					<SUBSCRIBER_STATUS></SUBSCRIBER_STATUS>\r\n" + 
-				"					<RICA_STATUS></RICA_STATUS>\r\n" + 
-				"					<RICA_DATE></RICA_DATE>\r\n" + 
-				"					<RICA_LOCK></RICA_LOCK>\r\n" + 
-				"					<ORIGINAL_ICC_ID></ORIGINAL_ICC_ID>\r\n" + 
-				"					<SUB_CTG_LIST>\r\n" + 
-				"						<T_SUB_CTG>\r\n" + 
-				"							<CATEGORY_TYPE></CATEGORY_TYPE>\r\n" + 
-				"							<CATEGORY></CATEGORY>\r\n" + 
-				"							<DATE_FROM></DATE_FROM>\r\n" + 
-				"						</T_SUB_CTG>						\r\n" + 
-				"					</SUB_CTG_LIST>\r\n" + 
-				"					<COMMISSION_SEQ></COMMISSION_SEQ>\r\n" + 
-				"					<COMMISSION_CODE></COMMISSION_CODE>\r\n" + 
-				"					<COMMISSION_POINT></COMMISSION_POINT>\r\n" + 
-				"				</T_SUB_ATR>\r\n" + 
-				"			</SUB_ATR_LIST>\r\n" + 
-				"			<SUB_SRV_LIST>\r\n" + 
-				"				<T_SUB_SRV>\r\n" + 
-				"					<O_ID></O_ID>\r\n" + 
-				"					<ST_ID></ST_ID>\r\n" + 
-				"					<SO_ID></SO_ID>\r\n" + 
-				"					<DATE_FROM></DATE_FROM>\r\n" + 
-				"					<SUB_SRV_ID_LIST>\r\n" + 
-				"						<T_SRV_ID>\r\n" + 
-				"							<ID_TYPE></ID_TYPE>\r\n" + 
-				"							<ID></ID>\r\n" + 
-				"							<START_DATE></START_DATE>\r\n" + 
-				"						</T_SRV_ID>						\r\n" + 
-				"					</SUB_SRV_ID_LIST>\r\n" + 
-				"					<SUB_SRV_NE_LIST>\r\n" + 
-				"						<T_SRV_NE>\r\n" + 
-				"							<NE_TYPE></NE_TYPE>\r\n" + 
-				"							<NE_ID></NE_ID>\r\n" + 
-				"						</T_SRV_NE>\r\n" + 
-				"					</SUB_SRV_NE_LIST>\r\n" + 
-				"				</T_SUB_SRV>\r\n" + 
-				"				<T_SUB_SRV>\r\n" + 
-				"					<O_ID></O_ID>\r\n" + 
-				"					<ST_ID></ST_ID>\r\n" + 
-				"					<SO_ID></SO_ID>\r\n" + 
-				"					<DATE_FROM></DATE_FROM>\r\n" + 
-				"					<SUB_SRV_ID_LIST>\r\n" + 
-				"						<T_SRV_ID>\r\n" + 
-				"							<ID_TYPE></ID_TYPE>\r\n" + 
-				"							<ID></ID>\r\n" + 
-				"							<START_DATE></START_DATE>\r\n" + 
-				"						</T_SRV_ID>\r\n" + 
-				"					</SUB_SRV_ID_LIST>\r\n" + 
-				"				</T_SUB_SRV>				\r\n" + 
-				"			</SUB_SRV_LIST>\r\n" + 
-				"			<SUB_DTL_LIST>\r\n" + 
-				"				<T_SUB_DTL>\r\n" + 
-				"					<TITLE_ID></TITLE_ID>\r\n" + 
-				"					<SURNAME></SURNAME>\r\n" + 
-				"					<FIRST_NAME></FIRST_NAME>\r\n" + 
-				"					<INITIALS></INITIALS>\r\n" + 
-				"					<BIRTH_DATE></BIRTH_DATE>\r\n" + 
-				"					<LISTED_YN></LISTED_YN>\r\n" + 
-				"					<GENDER></GENDER>\r\n" + 
-				"					<SUB_ADR_LIST>\r\n" + 
-				"						<T_SUB_ADR>\r\n" + 
-				"							<STREET_POSTAL_IND></STREET_POSTAL_IND>\r\n" + 
-				"							<LINE_1></LINE_1>\r\n" + 
-				"							<POSTAL_CODE></POSTAL_CODE>\r\n" + 
-				"							<COUNTRY_ID></COUNTRY_ID>\r\n" + 
-				"							<DATE_FROM></DATE_FROM>\r\n" + 
-				"						</T_SUB_ADR>						\r\n" + 
-				"					</SUB_ADR_LIST>\r\n" + 
-				"					<SUB_ID_LIST>\r\n" + 
-				"						<T_SUB_ID>\r\n" + 
-				"							<COUNTRY_ID></COUNTRY_ID>\r\n" + 
-				"							<ID_TYPE></ID_TYPE>\r\n" + 
-				"							<ID></ID>\r\n" + 
-				"							<DATE_FROM></DATE_FROM>\r\n" + 
-				"						</T_SUB_ID>\r\n" + 
-				"					</SUB_ID_LIST>\r\n" + 
-				"					<SUB_ROL_LIST>\r\n" + 
-				"						<T_SUB_ROL>\r\n" + 
-				"							<ROLE_TYPE></ROLE_TYPE>\r\n" + 
-				"							<DATE_FROM></DATE_FROM>\r\n" + 
-				"						</T_SUB_ROL>						\r\n" + 
-				"					</SUB_ROL_LIST>\r\n" + 
-				"				</T_SUB_DTL>\r\n" + 
-				"			</SUB_DTL_LIST>\r\n" + 
-				"		</T_SUB_EVN>\r\n" + 
-				"	</ROW>\r\n" + 
-				"</ROWSET>";
+		String xmlPayLoad = "<?xml version=\"1.0\"?>\r\n" + "<ROWSET>\r\n" + "	<ROW>\r\n"
+				+ "		<XML_VERSION>0.010</XML_VERSION>\r\n" + "		<T_SUB_EVN>\r\n"
+				+ "			<EVENT_TYPE>SIMSWP</EVENT_TYPE>\r\n" + "			<EVENT_SEQ>1</EVENT_SEQ>\r\n"
+				+ "			<REQUEST_SEQ>2</REQUEST_SEQ>\r\n"
+				+ "			<EVENT_DATE>2020-06-28 12:02:00</EVENT_DATE>\r\n" + "			<ICAP_ID>50</ICAP_ID>\r\n"
+				+ "			<CUSTOMER_ID></CUSTOMER_ID>\r\n" + "			<ICAP_EVENT_SEQ></ICAP_EVENT_SEQ>\r\n"
+				+ "			<EVN_ATR_LIST>\r\n" + "				<T_EVN_ATR>\r\n"
+				+ "					<ORIGIN_ID>6D</ORIGIN_ID>\r\n" + "					<OFFER_ID></OFFER_ID>\r\n"
+				+ "					<OFFER_GROUP></OFFER_GROUP>\r\n"
+				+ "					<EVENT_MSISDN>255745757350</EVENT_MSISDN>\r\n"
+				+ "                    <OLD_ICC_ID>8925504100000024</OLD_ICC_ID>\r\n"
+				+ "                    <NEW_ICC_ID>8925504200401457806</NEW_ICC_ID>\r\n"
+				+ "				</T_EVN_ATR>\r\n" + "			</EVN_ATR_LIST>\r\n" + "			<SUB_ATR_LIST>\r\n"
+				+ "				<T_SUB_ATR>\r\n" + "					<MSIN></MSIN>\r\n"
+				+ "					<ICC_ID></ICC_ID>\r\n" + "					<T11_MSISDN></T11_MSISDN>\r\n"
+				+ "					<ACTIVATION_DATE></ACTIVATION_DATE>\r\n"
+				+ "					<CONNECTION_DATE></CONNECTION_DATE>\r\n"
+				+ "					<OFFER_START_DATE></OFFER_START_DATE>\r\n"
+				+ "					<GSM_OFFER_ID_ORG></GSM_OFFER_ID_ORG>\r\n"
+				+ "					<GSM_OFFER_ID></GSM_OFFER_ID>\r\n"
+				+ "					<SP_REF_KEY></SP_REF_KEY>\r\n"
+				+ "					<PAYMENT_METHOD></PAYMENT_METHOD>\r\n" + "					<CLASS></CLASS>\r\n"
+				+ "					<TWC_STATUS></TWC_STATUS>\r\n"
+				+ "					<HLR_NUMBERING_TYPE>S</HLR_NUMBERING_TYPE>\r\n"
+				+ "					<ADMIN_LOCK></ADMIN_LOCK>\r\n" + "					<STOLEN_LOCK></STOLEN_LOCK>\r\n"
+				+ "					<CLL_STATUS></CLL_STATUS>\r\n"
+				+ "					<SUBSCRIBER_STATUS></SUBSCRIBER_STATUS>\r\n"
+				+ "					<RICA_STATUS></RICA_STATUS>\r\n" + "					<RICA_DATE></RICA_DATE>\r\n"
+				+ "					<RICA_LOCK></RICA_LOCK>\r\n"
+				+ "					<ORIGINAL_ICC_ID></ORIGINAL_ICC_ID>\r\n" + "					<SUB_CTG_LIST>\r\n"
+				+ "						<T_SUB_CTG>\r\n"
+				+ "							<CATEGORY_TYPE></CATEGORY_TYPE>\r\n"
+				+ "							<CATEGORY></CATEGORY>\r\n"
+				+ "							<DATE_FROM></DATE_FROM>\r\n"
+				+ "						</T_SUB_CTG>						\r\n"
+				+ "					</SUB_CTG_LIST>\r\n" + "					<COMMISSION_SEQ></COMMISSION_SEQ>\r\n"
+				+ "					<COMMISSION_CODE></COMMISSION_CODE>\r\n"
+				+ "					<COMMISSION_POINT></COMMISSION_POINT>\r\n" + "				</T_SUB_ATR>\r\n"
+				+ "			</SUB_ATR_LIST>\r\n" + "			<SUB_SRV_LIST>\r\n" + "				<T_SUB_SRV>\r\n"
+				+ "					<O_ID></O_ID>\r\n" + "					<ST_ID></ST_ID>\r\n"
+				+ "					<SO_ID></SO_ID>\r\n" + "					<DATE_FROM></DATE_FROM>\r\n"
+				+ "					<SUB_SRV_ID_LIST>\r\n" + "						<T_SRV_ID>\r\n"
+				+ "							<ID_TYPE></ID_TYPE>\r\n" + "							<ID></ID>\r\n"
+				+ "							<START_DATE></START_DATE>\r\n"
+				+ "						</T_SRV_ID>						\r\n"
+				+ "					</SUB_SRV_ID_LIST>\r\n" + "					<SUB_SRV_NE_LIST>\r\n"
+				+ "						<T_SRV_NE>\r\n" + "							<NE_TYPE></NE_TYPE>\r\n"
+				+ "							<NE_ID></NE_ID>\r\n" + "						</T_SRV_NE>\r\n"
+				+ "					</SUB_SRV_NE_LIST>\r\n" + "				</T_SUB_SRV>\r\n"
+				+ "				<T_SUB_SRV>\r\n" + "					<O_ID></O_ID>\r\n"
+				+ "					<ST_ID></ST_ID>\r\n" + "					<SO_ID></SO_ID>\r\n"
+				+ "					<DATE_FROM></DATE_FROM>\r\n" + "					<SUB_SRV_ID_LIST>\r\n"
+				+ "						<T_SRV_ID>\r\n" + "							<ID_TYPE></ID_TYPE>\r\n"
+				+ "							<ID></ID>\r\n" + "							<START_DATE></START_DATE>\r\n"
+				+ "						</T_SRV_ID>\r\n" + "					</SUB_SRV_ID_LIST>\r\n"
+				+ "				</T_SUB_SRV>				\r\n" + "			</SUB_SRV_LIST>\r\n"
+				+ "			<SUB_DTL_LIST>\r\n" + "				<T_SUB_DTL>\r\n"
+				+ "					<TITLE_ID></TITLE_ID>\r\n" + "					<SURNAME></SURNAME>\r\n"
+				+ "					<FIRST_NAME></FIRST_NAME>\r\n" + "					<INITIALS></INITIALS>\r\n"
+				+ "					<BIRTH_DATE></BIRTH_DATE>\r\n" + "					<LISTED_YN></LISTED_YN>\r\n"
+				+ "					<GENDER></GENDER>\r\n" + "					<SUB_ADR_LIST>\r\n"
+				+ "						<T_SUB_ADR>\r\n"
+				+ "							<STREET_POSTAL_IND></STREET_POSTAL_IND>\r\n"
+				+ "							<LINE_1></LINE_1>\r\n"
+				+ "							<POSTAL_CODE></POSTAL_CODE>\r\n"
+				+ "							<COUNTRY_ID></COUNTRY_ID>\r\n"
+				+ "							<DATE_FROM></DATE_FROM>\r\n"
+				+ "						</T_SUB_ADR>						\r\n"
+				+ "					</SUB_ADR_LIST>\r\n" + "					<SUB_ID_LIST>\r\n"
+				+ "						<T_SUB_ID>\r\n" + "							<COUNTRY_ID></COUNTRY_ID>\r\n"
+				+ "							<ID_TYPE></ID_TYPE>\r\n" + "							<ID></ID>\r\n"
+				+ "							<DATE_FROM></DATE_FROM>\r\n" + "						</T_SUB_ID>\r\n"
+				+ "					</SUB_ID_LIST>\r\n" + "					<SUB_ROL_LIST>\r\n"
+				+ "						<T_SUB_ROL>\r\n" + "							<ROLE_TYPE></ROLE_TYPE>\r\n"
+				+ "							<DATE_FROM></DATE_FROM>\r\n"
+				+ "						</T_SUB_ROL>						\r\n"
+				+ "					</SUB_ROL_LIST>\r\n" + "				</T_SUB_DTL>\r\n"
+				+ "			</SUB_DTL_LIST>\r\n" + "		</T_SUB_EVN>\r\n" + "	</ROW>\r\n" + "</ROWSET>";
 		// XMLType xmlType = new XMLType(conn, xmlPayLoad);
 
 		Clob eventString = OracleAQBLOBUtil.createClob(xmlPayLoad, (oracle.jdbc.driver.OracleConnection) conn);
@@ -356,6 +307,24 @@ public class ObjectEnqueueHandler {
 				try {
 					stmt.close();
 				} catch (SQLException exx) {
+				}
+			}
+		}
+	}
+
+	private void tryUpdateDatabase(Connection conn, String sql) {
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			stmt.executeUpdate(sql);
+		} catch (SQLException sqlex) {
+			System.out.println("Exception (" + sqlex.getMessage() + ") while trying to execute \"" + sql + "\"");
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException exx) {
+					exx.printStackTrace();
 				}
 			}
 		}
