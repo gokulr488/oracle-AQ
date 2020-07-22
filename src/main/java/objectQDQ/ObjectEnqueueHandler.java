@@ -156,20 +156,19 @@ public class ObjectEnqueueHandler {
 //
 //				EXECUTE DBMS_AQADM.START_QUEUE (
 //				queue_name         => 'event_object_queue');
-		tryUpdateDatabase(conn, "DROP TYPE SVC_ESB.T_ICAP_EVENT;");
+		//tryUpdateDatabase(conn, "DROP TYPE SVC_ESB.T_ICAP_EVENT;");
 		tryUpdateDatabase(conn, "BEGIN " + "  DBMS_AQADM.STOP_QUEUE('SVC_ESB.SIXDQUEUE'); " + "END; ");
 		tryUpdateDatabase(conn,
-				"BEGIN " + "  DBMS_AQADM.DROP_QUEUE_TABLE( "
-						+ "    QUEUE_TABLE         => 'SVC_ESB.SIXDQUEUETABLE', "
+				"BEGIN " + "  DBMS_AQADM.DROP_QUEUE_TABLE( " + "    QUEUE_TABLE         => 'SVC_ESB.SIXDQUEUETABLE', "
 						+ "    FORCE               => TRUE); " + "END; ");
 
-		doUpdateDatabase(conn,
-				"CREATE type SVC_ESB.T_ICAP_EVENT as object (\r\n"
-						+ "EVENT_SEQ                                          NUMBER(10),\r\n"
-						+ " EVENT_TIMESTAMP                                    DATE,\r\n"
-						+ " EVENT_TYPE                                         VARCHAR2(6),\r\n"
-						+ " ICAP_ID                                            NUMBER(10),\r\n"
-						+ " EVENT_STRING                                       CLOB);  ");
+//		doUpdateDatabase(conn,
+//				"CREATE type SVC_ESB.T_ICAP_EVENT as object (\r\n"
+//						+ "EVENT_SEQ                                          NUMBER(10),\r\n"
+//						+ " EVENT_TIMESTAMP                                    DATE,\r\n"
+//						+ " EVENT_TYPE                                         VARCHAR2(6),\r\n"
+//						+ " ICAP_ID                                            NUMBER(10),\r\n"
+//						+ " EVENT_STRING                                       CLOB);  ");
 
 		doUpdateDatabase(conn,
 				"BEGIN\r\n" + "       DBMS_AQADM.CREATE_QUEUE_TABLE(\r\n"
@@ -183,19 +182,27 @@ public class ObjectEnqueueHandler {
 
 	}
 
+	int eventSeq = 2;
+	int icapID = 51;
+
 	public EventObj populateData() throws Exception {
 		EventObj data = new EventObj();
-		data.setEventSeq(1);
+		data.setEventSeq(eventSeq);
+		data.setEventTimeStamp(new Date(System.currentTimeMillis()));
+		data.setEventType("SIMSWP");
+		data.setIcapId(icapID);
+		eventSeq++;
+		icapID++;
 
 		String xmlPayLoad = "<?xml version=\"1.0\"?>\r\n" + "<ROWSET>\r\n" + "	<ROW>\r\n"
 				+ "		<XML_VERSION>0.010</XML_VERSION>\r\n" + "		<T_SUB_EVN>\r\n"
-				+ "			<EVENT_TYPE>SIMSWP</EVENT_TYPE>\r\n" + "			<EVENT_SEQ>1</EVENT_SEQ>\r\n"
-				+ "			<REQUEST_SEQ>2</REQUEST_SEQ>\r\n"
-				+ "			<EVENT_DATE>2020-06-28 12:02:00</EVENT_DATE>\r\n" + "			<ICAP_ID>50</ICAP_ID>\r\n"
-				+ "			<CUSTOMER_ID></CUSTOMER_ID>\r\n" + "			<ICAP_EVENT_SEQ></ICAP_EVENT_SEQ>\r\n"
-				+ "			<EVN_ATR_LIST>\r\n" + "				<T_EVN_ATR>\r\n"
-				+ "					<ORIGIN_ID>6D</ORIGIN_ID>\r\n" + "					<OFFER_ID></OFFER_ID>\r\n"
-				+ "					<OFFER_GROUP></OFFER_GROUP>\r\n"
+				+ "			<EVENT_TYPE>SIMSWP</EVENT_TYPE>\r\n" + "			<EVENT_SEQ>" + eventSeq
+				+ "</EVENT_SEQ>\r\n" + "			<REQUEST_SEQ>2</REQUEST_SEQ>\r\n"
+				+ "			<EVENT_DATE>2020-06-28 12:02:00</EVENT_DATE>\r\n" + "			<ICAP_ID>" + icapID
+				+ "</ICAP_ID>\r\n" + "			<CUSTOMER_ID></CUSTOMER_ID>\r\n"
+				+ "			<ICAP_EVENT_SEQ></ICAP_EVENT_SEQ>\r\n" + "			<EVN_ATR_LIST>\r\n"
+				+ "				<T_EVN_ATR>\r\n" + "					<ORIGIN_ID>6D</ORIGIN_ID>\r\n"
+				+ "					<OFFER_ID></OFFER_ID>\r\n" + "					<OFFER_GROUP></OFFER_GROUP>\r\n"
 				+ "					<EVENT_MSISDN>255745757350</EVENT_MSISDN>\r\n"
 				+ "                    <OLD_ICC_ID>8925504100000024</OLD_ICC_ID>\r\n"
 				+ "                    <NEW_ICC_ID>8925504200401457806</NEW_ICC_ID>\r\n"
@@ -269,9 +276,7 @@ public class ObjectEnqueueHandler {
 
 		Clob eventString = OracleAQBLOBUtil.createClob(xmlPayLoad, (oracle.jdbc.driver.OracleConnection) conn);
 		data.setEventString(eventString);
-		data.setEventTimeStamp(new Date(System.currentTimeMillis()));
-		data.setEventType("SIMSWP");
-		data.setIcapId(50);
+
 		return data;
 	}
 
